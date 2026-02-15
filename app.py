@@ -45,6 +45,22 @@ students_collection = db[STUDENTS_COLLECTION]
 rooms_collection = db[ROOMS_COLLECTION]
 transactions_collection = db[TRANSACTIONS_COLLECTION]
 
+# Health check route
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok", "message": "App is running"}), 200
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(e):
+    logger.error(f"404 Error: {request.path}")
+    return jsonify({"error": "Not found", "path": request.path}), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"500 Error: {str(e)}")
+    return jsonify({"error": "Internal server error"}), 500
+
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
