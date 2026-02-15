@@ -66,7 +66,7 @@ def server_error(e):
     logger.error(f"500 Error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     """Root path - show login page"""
     if request.method == "POST":
