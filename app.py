@@ -1,4 +1,5 @@
 import os
+import logging
 from datetime import datetime, timezone
 
 from dotenv import load_dotenv
@@ -10,6 +11,10 @@ from reportlab.lib.utils import ImageReader
 from io import BytesIO
 
 load_dotenv()
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = "hostel_secret_123"
@@ -24,9 +29,17 @@ ROOMS_COLLECTION = os.environ.get("MONGODB_ROOMS_COLLECTION", "rooms")
 TRANSACTIONS_COLLECTION = os.environ.get("MONGODB_TRANSACTIONS_COLLECTION", "transactions")
 
 if not MONGODB_URI:
+    logger.error("MONGODB_URI is not set. Set it before starting the app.")
     raise RuntimeError("MONGODB_URI is not set. Set it before starting the app.")
 
-mongo_client = MongoClient(MONGODB_URI)
+try:
+    mongo_client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
+    mongo_client.server_info()  # Test connection
+    logger.info("✓ MongoDB connected successfully")
+except Exception as e:
+    logger.error(f"✗ MongoDB connection failed: {e}")
+    raise
+
 db = mongo_client[MONGODB_DB]
 students_collection = db[STUDENTS_COLLECTION]
 rooms_collection = db[ROOMS_COLLECTION]
