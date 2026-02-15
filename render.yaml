@@ -9,7 +9,7 @@ services:
       - key: FLASK_ENV
         value: production
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://joshi12345:joshi12345@notify.fvlhsso.mongodb.net/?appName=notify
       - key: MONGODB_DB
         value: hostel_db
       - key: MONGODB_STUDENTS_COLLECTION
