@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hostel Fee Payment</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- ✅ Stable ethers.js (UMD build) -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h2>Hostel Fee Payment</h2>
+
+    <p><b>Student ID:</b> {{ sid }}</p>
+    <p><b>Room No:</b> {{ room }}</p>
+    <p><b>Amount:</b> 1 ETH</p>
+
+	<button onclick="connectWallet()">Connect Wallet</button>
+	<button onclick="payNow()">Pay Now</button>
+	<button id="downloadReceipt" onclick="downloadReceipt()" disabled>Download Receipt (PDF)</button>
+
+    <p id="status"></p>
+
+	<div id="receipt" style="display:none; text-align:left; margin-top:20px;">
+		<h3>Payment Receipt</h3>
+		<p><b>Student ID:</b> <span id="receiptSid"></span></p>
+		<p><b>Room No:</b> <span id="receiptRoom"></span></p>
+		<p><b>Transaction Hash:</b> <span id="receiptHash"></span></p>
+		<p><b>Date (UTC):</b> <span id="receiptDate"></span></p>
+	</div>
+</div>
+
+<script>
+/* ===============================
+	GLOBAL VARIABLES
+================================ */
+let provider;
+let signer;
+let contract;
+
+/* ===============================
+	SMART CONTRACT DETAILS
+================================ */
+const contractAddress = "0x392aECBfa3f3EE726Bb7333446aF1793EE5f6aff";
+
+const abi = [
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_admin",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "student",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "roomNo",
+				"type": "uint256"
+			}
+		],
+		"name": "Paid",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "roomNo",
+				"type": "uint256"
+			}
+		],
+		"name": "payFee",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "admin",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+
+/* ===============================
+	CONNECT WALLET
+================================ */
+async function connectWallet() {
+    const status = document.getElementById("status");
+
+    if (!window.ethereum) {
+        status.innerText = "❌ MetaMask not detected";
+        return;
+    }
+
+    try {
+        // Request account access
+        await window.ethereum.request({
+            method: "eth_requestAccounts"
+        });
+
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+
+        const address = await signer.getAddress();
+
+        contract = new ethers.Contract(contractAddress, abi, signer);
+
+        status.innerText = "✅ Wallet Connected: " + address;
+        console.log("Wallet connected:", address);
+
+    } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Wallet connection failed";
+    }
+}
+
+/* ===============================
+	PAY HOSTEL FEE
+================================ */
+async function payNow() {
+    const status = document.getElementById("status");
+	const downloadButton = document.getElementById("downloadReceipt");
+
+    if (!contract) {
+        alert("Please connect wallet first");
+        return;
+    }
+
+    try {
+        status.innerText = "⏳ Processing transaction...";
+
+        // ✅ Room number from Flask
+		const roomLabel = "{{ room }}";
+		const roomNo = parseInt(roomLabel.replace(/\D/g, ""), 10);
+
+		if (Number.isNaN(roomNo)) {
+			status.innerText = "❌ Invalid room number: " + roomLabel;
+			return;
+		}
+
+        // ✅ Call smart contract
+        const tx = await contract.payFee(roomNo, {
+            value: ethers.utils.parseEther("1")
+        });
+
+        status.innerText = "✅ Transaction sent!\nHash:\n" + tx.hash;
+        console.log("Transaction hash:", tx.hash);
+
+        // Wait for confirmation
+        await tx.wait();
+
+		status.innerText += "\n🎉 Payment confirmed on blockchain";
+
+		const response = await fetch("/mark_paid", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				room: roomLabel,
+				txHash: tx.hash
+			})
+		});
+
+		let result = null;
+		try {
+			result = await response.json();
+		} catch (parseError) {
+			console.error(parseError);
+		}
+
+		if (!response.ok || !result || !result.ok) {
+			const errorMsg = (result && result.error) ? result.error : "Room update failed";
+			status.innerText += "\n⚠️ Payment confirmed but room update failed: " + errorMsg;
+			return;
+		}
+
+		status.innerText += "\n✅ Room marked as occupied";
+
+		const nowUtc = new Date().toISOString();
+		document.getElementById("receiptSid").innerText = "{{ sid }}";
+		document.getElementById("receiptRoom").innerText = roomLabel;
+		document.getElementById("receiptHash").innerText = tx.hash;
+		document.getElementById("receiptDate").innerText = nowUtc;
+		document.getElementById("receipt").style.display = "block";
+		downloadButton.disabled = false;
+
+		window.receiptData = {
+			room: roomLabel,
+			txHash: tx.hash,
+			dateUtc: nowUtc
+		};
+
+    } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Payment failed";
+    }
+}
+
+async function downloadReceipt() {
+	if (!window.receiptData) {
+		alert("No receipt data available");
+		return;
+	}
+
+	const response = await fetch("/download_receipt", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(window.receiptData)
+	});
+
+	if (response.ok) {
+		const blob = await response.blob();
+		const url = window.URL.createObjectURL(blob);
+		const a = document.createElement("a");
+		a.href = url;
+		a.download = "receipt_{{ sid }}.pdf";
+		a.click();
+		window.URL.revokeObjectURL(url);
+	} else {
+		alert("Failed to download receipt");
+	}
+}
+</script>
+
+</body>
+</html>

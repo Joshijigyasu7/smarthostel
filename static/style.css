@@ -1,0 +1,88 @@
+body {
+    background: #0a1a3a;
+    font-family: Arial;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: rgba(255,255,255,0.1);
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+}
+
+input, button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: none;
+}
+
+button {
+    background: #1e90ff;
+    color: white;
+    cursor: pointer;
+}
+/* ROOM ROW */
+.room-row {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  font-size: 16px;
+}
+
+/* RADIO */
+.room-row input[type="radio"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+/* ROOM NAME */
+.room-name {
+  color: #ffffff;
+}
+
+/* STATUS */
+.status {
+  font-weight: 600;
+}
+
+/* AVAILABLE */
+.status.available {
+  color: #22c55e;
+}
+
+/* OCCUPIED */
+.room-row.occupied {
+  grid-template-columns: 1fr auto;
+  opacity: 0.6;
+}
+
+.status.occupied {
+  color: #ef4444;
+}
+
+/* BUTTON */
+.pay-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pay-btn:hover {
+  background-color: #1d4ed8;
+}

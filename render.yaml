@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: hostel-app
+    runtime: python
+    pythonVersion: 3.11
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: hostel_db
+      - key: MONGODB_STUDENTS_COLLECTION
+        value: students
+      - key: MONGODB_ROOMS_COLLECTION
+        value: rooms
+      - key: MONGODB_TRANSACTIONS_COLLECTION
+        value: transactions

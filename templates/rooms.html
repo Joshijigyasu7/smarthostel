@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Your Hostel Room</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            z-index: 100;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        .header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 14px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .layout {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto 30px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .center-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hallway {
+            width: 420px;
+            height: 22px;
+            background: #dcdcdc;
+            border: 1px solid #bfbfbf;
+        }
+
+        .room input {
+            display: none;
+        }
+
+        .room span,
+        .facility {
+            display: block;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            border: 1px solid #333;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .available span {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .available span:hover {
+            background: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        .room input:checked + span {
+            transform: scale(1.08);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+            border: 2px solid white;
+        }
+
+        .occupied {
+            background: #f44336;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 0;
+            border: 1px solid #d32f2f;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .facility {
+            cursor: not-allowed;
+            color: white;
+        }
+
+        .washroom { background: #9bb1ff; }
+        .open-area { background: #5a22c8; }
+        .warden { background: #ff8a65; }
+        .stairs { background: #9bb1ff; }
+        .entry { background: #5a22c8; }
+        .common { background: #dcdcdc; color: #333; }
+        .mess { background: #5a22c8; }
+        .water { background: #9bb1ff; }
+
+        .allocated-message {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            max-width: 600px;
+            margin: 30px auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .allocated-message h2 {
+            color: #4CAF50;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .allocated-message p {
+            color: #555;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .room-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .allocated-message .btn-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-logout {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #d32f2f;
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .form-section button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-section button:hover {
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .form-section button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+<button class="logout-btn" onclick="logout()">Logout</button>
+
+<div class="header">
+    <h1>🏠 Choose Your Hostel Room</h1>
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-box" style="background:#4CAF50;"></div>
+            <span>Available</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-box" style="background:#f44336;"></div>
+            <span>Occupied</span>
+        </div>
+    </div>
+</div>
+
+{% if assigned_room %}
+    <div class="allocated-message">
+        <h2>✅ Room Already Allocated</h2>
+        <p>Congratulations! Your room has been successfully allocated.</p>
+        <div class="room-badge">Room {{ assigned_room.room }}</div>
+        <p style="color:#999; font-size:14px; margin-top:10px;">You cannot book another room. Contact administration if you need any assistance.</p>
+        <div class="btn-group">
+            <a href="/student/dashboard" class="btn btn-primary">View My Room</a>
+            <button type="button" class="btn btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+{% else %}
+
+<form method="POST" action="/select_room">
+
+<div class="layout">
+    <!-- LEFT COLUMN -->
+    <div class="column">
+        {% for room in ["G16","G17","G18"] %}
+            {% set status = rooms_map.get(room, "available") %}
+            {% if status == "available" %}
+                <label class="room available">
+                    <input type="radio" name="room" value="{{ room }}" required>
+                    <span>{{ room }}</span>
+                </label>
+            {% else %}
+                <div class="occupied">{{ room }}</div>
+            {% endif %}
+        {% endfor %}
+        <div class="facility washroom">Washroom</div>
+        {% for room in ["G20","G21","G22","G23","G24","G25","G26"] %}
+            {% set status = rooms_map.get(room, "available") %}
+            {% if status == "available" %}
+                <label class="room available">
+                    <input type="radio" name="room" value="{{ room }}" required>
+                    <span>{{ room }}</span>
+                </label>
+            {% else %}
+                <div class="occupied">{{ room }}</div>
+            {% endif %}
+        {% endfor %}
+        <div class="facility open-area">Open Area</div>
+        <div class="facility warden">Warden Room</div>
+        <div class="facility stairs">Stair Case</div>
+        <div class="facility entry">Entry & Exit</div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="center">
+        <div class="center-row">
+            {% for room in ["G28","G29","G30"] %}
+                {% set status = rooms_map.get(room, "available") %}
+                {% if status == "available" %}
+                    <label class="room available">
+                        <input type="radio" name="room" value="{{ room }}">
+                        <span>{{ room }}</span>
+                    </label>
+                {% else %}
+                    <div class="occupied">{{ room }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="hallway"></div>
+
+        <div class="center-row">
+            {% for room in ["G33","G32","G31"] %}
+                {% set status = rooms_map.get(room, "available") %}
+                {% if status == "available" %}
+                    <label class="room available">
+                        <input type="radio" name="room" value="{{ room }}">
+                        <span>{{ room }}</span>
+                    </label>
+                {% else %}
+                    <div class="occupied">{{ room }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="center-row">
+            <div class="facility common" style="width: 240px;">Common Room</div>
+            <div class="facility mess" style="width: 240px;">Mess Area</div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="column">
+        {% for room in ["G15","G14","G13","G12"] %}
+            {% set status = rooms_map.get(room, "available") %}
+            {% if status == "available" %}
+                <label class="room available">
+                    <input type="radio" name="room" value="{{ room }}">
+                    <span>{{ room }}</span>
+                </label>
+            {% else %}
+                <div class="occupied">{{ room }}</div>
+            {% endif %}
+        {% endfor %}
+        {% for room in ["G11","G10","G09","G08","G07"] %}
+            {% set status = rooms_map.get(room, "available") %}
+            {% if status == "available" %}
+                <label class="room available">
+                    <input type="radio" name="room" value="{{ room }}">
+                    <span>{{ room }}</span>
+                </label>
+            {% else %}
+                <div class="occupied">{{ room }}</div>
+            {% endif %}
+        {% endfor %}
+        <div class="facility open-area">Open Area</div>
+        <div class="facility washroom">Washroom</div>
+        {% for room in ["G05","G04","G03"] %}
+            {% set status = rooms_map.get(room, "available") %}
+            {% if status == "available" %}
+                <label class="room available">
+                    <input type="radio" name="room" value="{{ room }}">
+                    <span>{{ room }}</span>
+                </label>
+            {% else %}
+                <div class="occupied">{{ room }}</div>
+            {% endif %}
+        {% endfor %}
+        <div class="facility water">Water Cooler</div>
+    </div>
+</div>
+
+<div class="form-section">
+    <button type="submit">📝 Proceed to Payment</button>
+</div>
+
+</form>
+
+{% endif %}
+
+<script>
+function logout() {
+    if (confirm("Are you sure you want to logout?")) {
+        window.location.href = "/logout";
+    }
+}
+</script>
+
+</body>
+</html>
