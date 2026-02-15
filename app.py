@@ -50,6 +50,11 @@ transactions_collection = db[TRANSACTIONS_COLLECTION]
 def health():
     return jsonify({"status": "ok", "message": "App is running"}), 200
 
+# Favicon route
+@app.route("/favicon.ico")
+def favicon():
+    return send_file("static/favicon.ico", mimetype="image/x-icon")
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(e):
