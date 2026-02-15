@@ -33,11 +33,11 @@ if not MONGODB_URI:
     raise RuntimeError("MONGODB_URI is not set. Set it before starting the app.")
 
 try:
-    mongo_client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
-    mongo_client.server_info()  # Test connection
-    logger.info("✓ MongoDB connected successfully")
+    mongo_client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000, connectTimeoutMS=10000)
+    # Don't test connection on startup - just create client
+    logger.info("✓ MongoDB client created")
 except Exception as e:
-    logger.error(f"✗ MongoDB connection failed: {e}")
+    logger.error(f"✗ MongoDB client creation failed: {e}")
     raise
 
 db = mongo_client[MONGODB_DB]
@@ -48,7 +48,7 @@ transactions_collection = db[TRANSACTIONS_COLLECTION]
 # Health check route
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "message": "App is running"}), 200
+    return jsonify({"status": "ok", "message": "App is running!"}), 200
 
 # Favicon route
 @app.route("/favicon.ico")
@@ -66,9 +66,9 @@ def server_error(e):
     logger.error(f"500 Error: {str(e)}")
     return jsonify({"error": "Internal server error"}), 500
 
-# ---------------- LOGIN ----------------
-@app.route("/", methods=["GET", "POST"])
-def login():
+@app.route("/")
+def index():
+    """Root path - show login page"""
     if request.method == "POST":
         sid = request.form.get("sid")
         pwd = request.form.get("pwd")
